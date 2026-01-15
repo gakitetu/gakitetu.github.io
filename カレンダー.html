@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガキ鉄予定カレンダー</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: linear-gradient(to bottom, #fff0f8, #ffe4f0);
+            color: #000;
+            margin: 0;
+            padding: 30px 10px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 40px;
+            padding: 30px;
+            box-shadow: 0 15px 40px rgba(255, 182, 193, 0.6);
+        }
+        h1 {
+            font-size: 3.2em;
+            margin: 0 0 20px;
+            text-shadow: 3px 3px 6px #ffb6c1;
+        }
+        h1::before {
+            content: "❤ ";
+            font-size: 1.2em;
+        }
+        h1::after {
+            content: " ❤";
+            font-size: 1.2em;
+        }
+        #edit-btn {
+            background: #d1478a;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 1.1em;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        #edit-btn.active {
+            background: #ff69b4;
+        }
+        #month-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        #month-nav button {
+            background: #ff99cc;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        #month-nav button:hover {
+            background: #ff80bf;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fffafa;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(255, 105, 180, 0.3);
+        }
+        th {
+            background: #ffcccb;
+            padding: 15px;
+            font-size: 1.3em;
+        }
+        td {
+            height: 100px;
+            border: 2px solid #ffb6c1;
+            vertical-align: top;
+            position: relative;
+            cursor: default;
+        }
+        td.other-month {
+            opacity: 0.4;
+        }
+        td.today {
+            background: #ffccff !important;
+        }
+        .day-number {
+            font-size: 1.6em;
+            font-weight: bold;
+            padding: 8px;
+        }
+        .mark {
+            position: absolute;
+            bottom: 8px;
+            right: 10px;
+            font-size: 2.5em;
+            pointer-events: none;
+        }
+        /* 日曜赤・土曜青 */
+        th:nth-child(7), td:nth-child(7) { color: #e63946; }
+        th:nth-child(6), td:nth-child(6) { color: #4361ee; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ガキ鉄予定カレンダー</h1>
+        <button id="edit-btn">編集モード: オフ</button>
+        <div id="month-nav">
+            <button id="prev-month">〈</button>
+            <span id="current-month"></span>
+            <button id="next-month">〉</button>
+        </div>
+        <table id="calendar">
+            <thead>
+                <tr>
+                    <th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th><th>日</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        const PASSWORD = "gaki"; // ←ここをあなただけの秘密のパスワードに変更してください！
+
+        let editMode = false;
+        let currentYear = new Date().getFullYear();
+        let currentMonth = new Date().getMonth(); // 0〜11
+
+        const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+
+        const calendarBody = document.querySelector('#calendar tbody');
+        const currentMonthSpan = document.getElementById('current-month');
+        const prevBtn = document.getElementById('prev-month');
+        const nextBtn = document.getElementById('next-month');
+        const editBtn = document.getElementById('edit-btn');
+
+        function loadEvents() {
+            const stored = localStorage.getItem('gakiEvents');
+            return stored ? JSON.parse(stored) : {};
+        }
+
+        let events = loadEvents();
+
+        function saveEvents() {
+            localStorage.setItem('gakiEvents', JSON.stringify(events));
+        }
+
+        function renderCalendar() {
+            calendarBody.innerHTML = '';
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            // 月曜始まりにするためのオフセット
+            let startDay = firstDay.getDay();
+            if (startDay === 0) startDay = 7;
+            const startDate = new Date(firstDay);
+            startDate.setDate(firstDay.getDate() - (startDay - 1));
+
+            currentMonthSpan.textContent = `${currentYear}年 ${months[currentMonth]}`;
+
+            let row = document.createElement('tr');
+            for (let i = 0; i < 42; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+
+                const dateStr = date.toISOString().split('T')[0];
+
+                const cell = document.createElement('td');
+                if (date.getMonth() !== currentMonth) cell.classList.add('other-month');
+
+                if (dateStr === todayStr) cell.classList.add('today');
+
+                const dayDiv = document.createElement('div');
+                dayDiv.className = 'day-number';
+                dayDiv.textContent = date.getDate();
+                cell.appendChild(dayDiv);
+
+                // マーク表示
+                if (events[dateStr] === '❤') {
+                    const mark = document.createElement('div');
+                    mark.className = 'mark';
+                    mark.textContent = '❤';
+                    cell.appendChild(mark);
+                }
+
+                // 編集モード時のクリック処理
+                if (editMode) {
+                    cell.style.cursor = 'pointer';
+                    cell.onclick = () => {
+                        if (events[dateStr] === '❤') {
+                            delete events[dateStr];
+                        } else {
+                            events[dateStr] = '❤';
+                        }
+                        saveEvents();
+                        renderCalendar();
+                    };
+                }
+
+                row.appendChild(cell);
+                if ((i + 1) % 7 === 0) {
+                    calendarBody.appendChild(row);
+                    row = document.createElement('tr');
+                }
+            }
+        }
+
+        prevBtn.onclick = () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        };
+
+        nextBtn.onclick = () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        };
+
+        editBtn.onclick = () => {
+            const input = prompt('パスワードを入力してください：');
+            if (input === PASSWORD) {
+                editMode = !editMode;
+                editBtn.textContent = `編集モード: ${editMode ? 'オン' : 'オフ'}`;
+                editBtn.classList.toggle('active', editMode);
+                renderCalendar();
+            } else if (input !== null) {
+                alert('パスワードが違います！');
+            }
+        };
+
+        // 初回描画
+        renderCalendar();
+    </script>
+</body>
+</html>
