@@ -43,10 +43,11 @@
             background: #d1478a;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px; /* ボタン少し大きく */
             border-radius: 30px;
             cursor: pointer;
-            margin: 0 5px;
+            margin: 0 8px;
+            font-size: 1.1em;
         }
         #logout-btn { background: #ff69b4; }
         #month-nav {
@@ -60,25 +61,29 @@
         #month-nav button {
             background: #ff99cc;
             border: none;
-            width: 50px;
-            height: 50px;
+            width: 56px; /* ボタン大きめで押しやすく */
+            height: 56px;
             border-radius: 50%;
-            font-size: 1.5em;
+            font-size: 1.8em;
             cursor: pointer;
         }
-        .table-wrapper { overflow-x: auto; border-radius: 20px; }
+        .table-wrapper { 
+            overflow-x: auto; 
+            border-radius: 20px; 
+            -webkit-overflow-scrolling: touch; /* スマホスクロール滑らかに */
+        }
         table {
             width: 100%;
-            min-width: 600px;
+            min-width: 620px; /* 少し広げてスマホでも見やすく */
             border-collapse: collapse;
             background: #fffafa;
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 10px 20px rgba(255, 105, 180, 0.3);
         }
-        th { background: #ffcccb; padding: 12px; font-size: 1.2em; }
+        th { background: #ffcccb; padding: 14px; font-size: 1.3em; } /* 曜日ヘッダー少し大きく */
         td {
-            height: 120px;
+            height: 110px; /* スマホでもマークが見やすい高さ */
             border: 2px solid #ffb6c1;
             vertical-align: top;
             position: relative;
@@ -86,23 +91,55 @@
         }
         td.other-month { opacity: 0.4; }
         td.today { background: #ffccff !important; }
-        .day-number { font-size: 1.6em; font-weight: bold; padding: 8px; }
+        .day-number { font-size: 1.7em; font-weight: bold; padding: 10px; } /* 日付数字少し大きく */
         .mark { 
             position: absolute; 
-            bottom: 8px; 
-            right: 10px; 
-            font-size: 3em; 
+            bottom: 10px; 
+            right: 12px; 
+            font-size: 3.2em; 
             pointer-events: none;
             text-shadow: 2px 2px 4px #ffb6c1;
         }
         th:nth-child(7), td:nth-child(7) { color: #e63946; }
         th:nth-child(6), td:nth-child(6) { color: #4361ee; }
+
+        /* スマホ専用調整（見やすさ大幅アップ♡） */
         @media (max-width: 768px) {
-            h1 { font-size: 2.2em; }
+            body { padding: 15px 8px; }
+            .container { padding: 18px; border-radius: 30px; }
+            h1 { font-size: 2.1em; margin-bottom: 15px; }
+            #auth-status { font-size: 1.05em; margin: 15px 0; }
+            #login-btn, #logout-btn { 
+                padding: 14px 28px; 
+                font-size: 1.15em; 
+                margin: 0 10px; 
+            }
+            #month-nav { 
+                margin: 25px 0; 
+                font-size: 1.5em; 
+            }
+            #month-nav button { 
+                width: 60px; 
+                height: 60px; 
+                font-size: 2em; 
+            }
+            th { padding: 12px; font-size: 1.2em; }
+            td { height: 95px; }
+            .day-number { font-size: 1.55em; padding: 8px; }
+            .mark { 
+                font-size: 2.8em; 
+                bottom: 8px; 
+                right: 10px; 
+            }
+            table { min-width: 580px; } /* 横スクロールしつつ詰まりすぎない */
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.9em; }
             #month-nav { font-size: 1.4em; }
-            .day-number { font-size: 1.4em; }
-            .mark { font-size: 2.5em; }
-            td { height: 100px; }
+            #month-nav button { width: 55px; height: 55px; font-size: 1.8em; }
+            .day-number { font-size: 1.5em; }
+            .mark { font-size: 2.6em; }
         }
     </style>
 </head>
@@ -268,4 +305,3 @@
     </script>
 </body>
 </html>
-
