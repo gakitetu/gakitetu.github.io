@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ガキ鉄 お問い合わせ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #ff69b4;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        details.section {
+            margin-top: 30px;
+            padding: 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        details.section > summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 20px;
+            color: #4a4a4a;
+            margin: 0;
+            border-bottom: 2px solid #ff69b4;
+            border-radius: 8px 8px 0 0;
+            background-color: #fafafa;
+        }
+        details.section > summary::-webkit-details-marker {
+            display: none;
+        }
+        details.section > summary::before {
+            content: "▼ ";
+            color: #ff69b4;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        details.section[open] > summary::before {
+            content: "▲ ";
+        }
+        details.section > div.content {
+            padding: 20px;
+        }
+        .contact-form label {
+            display: block;
+            margin-top: 15px;
+            font-weight: bold;
+            color: #555;
+        }
+        .contact-form .required {
+            color: #ff69b4;
+        }
+        .contact-form input[type="text"],
+        .contact-form input[type="email"],
+        .contact-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .contact-form textarea {
+            height: 150px;
+            resize: vertical;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .contact-form button {
+            background: #e8f5e8;
+            color: #2d6a4f;
+            border: 1px solid #95d5b2;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 30px;
+            text-align: center;
+        }
+        .contact-form button:hover {
+            opacity: 0.8;
+        }
+        .note {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .contact-info {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #fafafa;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 0.95em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ガキ鉄 お問い合わせ</h1>
+
+        <div class="section">
+            <p>料金計算表をご利用いただきありがとうございます。<br>
+               ご依頼・ご相談・ご質問など、以下のフォームからお気軽にお問い合わせください。<br>
+               送信ボタンを押すと、お使いのメールソフトが起動します。内容をご確認の上、送信してください。</p>
+        </div>
+
+        <details class="section" open>
+            <summary>お問い合わせフォーム</summary>
+            <div class="content">
+                <form class="contact-form" id="contactForm">
+                    <label>お名前</label>
+                    <input type="text" id="name" placeholder="お名前を入力してください">
+
+                    <label>メールアドレス <span class="required">*</span></label>
+                    <input type="email" id="email" placeholder="example@email.com" required>
+
+                    <label>件名 <span class="required">*</span></label>
+                    <input type="text" id="subject" placeholder="件名を入力してください" required>
+
+                    <label>依頼概要</label>
+                    <textarea id="summary" placeholder="依頼の概要を簡潔に記載してください（例：R18音声収録、約3000文字など）"></textarea>
+
+                    <label>本文 <span class="required">*</span></label>
+                    <textarea id="body" placeholder="詳細な内容をお書きください" required></textarea>
+
+                    <button type="button" onclick="sendMail()">メールで送信</button>
+                </form>
+
+                <div class="note">
+                    <strong>※ご注意</strong><br>
+                    ・必須項目（メールアドレス・件名・本文）を必ずご記入ください。<br>
+                    ・送信ボタンを押すと、お使いのメールクライアント（Outlook、Gmailアプリなど）が起動します。<br>
+                    ・<strong>文字化け対策済み</strong>です。日本語は正しく表示されます。<br>
+                    ・スマホでご利用の場合、一部のメールアプリで正常に動作しないことがあります。その場合は直接メールまたはXのDMをご利用ください。
+                </div>
+            </div>
+        </details>
+
+        <div class="contact-info">
+            <strong>直接連絡先</strong><br>
+            メール：baccag0han@gmail.com<br>
+            Ｘ（Twitter）：@bacca_gohan
+        </div>
+    </div>
+
+    <script>
+        function sendMail() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const summary = document.getElementById('summary').value.trim();
+            const body = document.getElementById('body').value.trim();
+
+            if (!email || !subject || !body) {
+                alert('必須項目（メールアドレス・件名・本文）を入力してください。');
+                return;
+            }
+
+            let fullBody = '';
+            if (name) fullBody += `お名前: ${name}\n`;
+            if (email) fullBody += `メールアドレス: ${email}\n\n`;
+            if (summary) fullBody += `依頼概要:\n${summary}\n\n`;
+            fullBody += `本文:\n${body}`;
+
+            const encodedSubject = encodeURIComponent(subject);
+            const encodedBody = encodeURIComponent(fullBody);
+
+            const mailtoLink = `mailto:baccag0han@gmail.com?subject=${encodedSubject}&body=${encodedBody}`;
+
+            window.location.href = mailtoLink;
+        }
+    </script>
+</body>
+</html>
