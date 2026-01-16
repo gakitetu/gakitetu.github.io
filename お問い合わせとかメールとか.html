@@ -122,6 +122,20 @@
             text-align: center;
             font-size: 0.95em;
         }
+        .summary-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .summary-header label {
+            margin: 0;
+        }
+        .template-checkbox {
+            font-weight: normal;
+            color: #555;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -147,7 +161,13 @@
                     <label>件名 <span class="required">*</span></label>
                     <input type="text" id="subject" placeholder="件名を入力してください" required>
 
-                    <label>依頼概要</label>
+                    <div class="summary-header">
+                        <label>依頼概要</label>
+                        <label class="template-checkbox">
+                            <input type="checkbox" id="templateCheck" onchange="handleTemplate()">
+                            テンプレートを追加する
+                        </label>
+                    </div>
                     <textarea id="summary" placeholder="依頼の概要を簡潔に記載してください（例：R18音声収録、約3000文字など）"></textarea>
 
                     <label>本文 <span class="required">*</span></label>
@@ -174,6 +194,42 @@
     </div>
 
     <script>
+        const template = `【ご依頼の際のテンプレート】
+以下の項目をご記入のうえ、フォームに沿ってご依頼ください。
+
+1. ご依頼者様のお名前また法人様 or 個人様
+2. ボイス使用用途(個人利用or商用利用、公開範囲/YouTube/DLsite/FANZA等)
+3.全年齢 or R-15 R-18
+5. 依頼詳細（作品内容、キャラクターの立ち位置、相関図、希望する声質(動画リンクなどでもOK)・演技など）
+5.ご依頼文字数or秒数(だいたいでOK)
+5. ご希望の納期　月　日　〇〇：〇〇〆切
+6. 実績公開の可否、宣伝としての公表の可否
+7. 音声ファイル形式（映像用or音声作品用、wav/mp3/など）
+8. その他ご要望（ない場合は空欄）`;
+
+        function handleTemplate() {
+            const checkbox = document.getElementById('templateCheck');
+            const ta = document.getElementById('summary');
+
+            if (checkbox.checked) {
+                // 既にテンプレートが含まれていない場合のみ末尾に追加
+                if (!ta.value.includes('【ご依頼の際のテンプレート】')) {
+                    ta.value += (ta.value ? '\n\n' : '') + template;
+                }
+            } else {
+                // テンプレートが含まれている場合のみ確認して削除
+                if (ta.value.includes('【ご依頼の際のテンプレート】')) {
+                    if (confirm('チェックが外れますと文が消えますがよろしいでしょうか？')) {
+                        // 完全一致で削除し、前後の余分な改行を除去
+                        ta.value = ta.value.replace(template, '').replace(/^\n+|\n+$/g, '').trim();
+                        // 完全に空になった場合はプレースホルダーを維持するため空のまま
+                    } else {
+                        checkbox.checked = true; // キャンセルしたらチェックを戻す
+                    }
+                }
+            }
+        }
+
         function sendMail() {
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
