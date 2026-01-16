@@ -215,7 +215,7 @@
         </div>
     </div>
 
-    <details class="section" open>
+    <details class="section">
         <summary>ト書きの除外設定</summary>
         <div class="content">
             <div style="margin-bottom: 15px;">
@@ -339,114 +339,115 @@
         </div>
     </details>
 
-    <div class="section">
-        <h3>追加オプション</h3>
-        <div class="input-group">
-            <label>フリートーク:</label>
-            <input type="number" id="freeTalkMinutes" value="0" min="0" oninput="calculate()">
-            <span>分 (1000円/5分毎固定)</span>
-        </div>
+    <!-- 追加オプションを折り畳み化（初期状態は閉じ） -->
+    <details class="section">
+        <summary>追加オプション</summary>
+        <div class="content">
+            <div class="input-group">
+                <label>フリートーク:</label>
+                <input type="number" id="freeTalkMinutes" value="0" min="0" oninput="calculate()">
+                <span>分 (1000円/5分毎固定)</span>
+            </div>
 
-        <div class="input-group">
-            <label>アドリブ（台本に書いてない喘ぎやリップ音）:</label>
-            <input type="number" id="adlibMinutes" value="0" min="0" step="0.1" oninput="calculate()">
-            <span>分 (累計2分無料、超過分は1分単位切り上げで500円/分)</span>
-        </div>
+            <div class="input-group">
+                <label>アドリブ（台本に書いてない喘ぎやリップ音）:</label>
+                <input type="number" id="adlibMinutes" value="0" min="0" step="0.1" oninput="calculate()">
+                <span>分 (累計2分無料、超過分は1分単位切り上げで500円/分)</span>
+            </div>
 
-        <!-- 新規追加項目 -->
-        <div class="input-group">
-            <label>ゲップorおならの音:</label>
-            <input type="number" id="burpFartCount" value="0" min="0" oninput="calculate()">
-            <span>回 (5回まで600円、超過1回ごとに200円)</span>
-        </div>
+            <!-- 新規追加項目 -->
+            <div class="input-group">
+                <label>ゲップorおならの音:</label>
+                <input type="number" id="burpFartCount" value="0" min="0" oninput="calculate()">
+                <span>回 (5回まで600円、超過1回ごとに200円)</span>
+            </div>
 
-        <div class="input-group">
-            <label>ファイルカット数:</label>
-            <input type="number" id="fileCuts" value="0" min="0" oninput="calculate()">
-            <span>カット (100円/カット)</span>
-        </div>
+            <div class="input-group">
+                <label>ファイルカット数:</label>
+                <input type="number" id="fileCuts" value="0" min="0" oninput="calculate()">
+                <span>カット (100円/カット)</span>
+            </div>
 
-        <div class="input-group">
-            <label>一人多役 (追加役数):</label>
-            <input type="number" id="extraCharacters" value="0" min="0" oninput="calculate()">
-            <span>役 (全年齢:1,000円 / R15またはR18:2,000円 / バイノーラルありの場合+1,000円/役)</span>
-        </div>
+            <div class="input-group">
+                <label>一人多役 (追加役数):</label>
+                <input type="number" id="extraCharacters" value="0" min="0" oninput="calculate()">
+                <span>役 (全年齢:1,000円 / R15またはR18:2,000円 / バイノーラルありの場合+1,000円/役)</span>
+            </div>
 
-        <div class="input-group">
-            <label>動画合わせ(アテレコ):</label>
-            <input type="checkbox" id="videoSync" onchange="calculate()">
-            <span>台本料金の+25%</span>
-        </div>
+            <div class="input-group">
+                <label>動画合わせ(アテレコ):</label>
+                <input type="checkbox" id="videoSync" onchange="calculate()">
+                <span>台本料金の+25%</span>
+            </div>
 
-        <div class="input-group">
-            <label>ノイズカット（ホワイトノイズ除去）:</label>
-            <select id="noiseCut" onchange="calculate()">
-                <option value="none">なし: 0円</option>
-                <option value="white">ホワイトノイズ除去あり: +500円（固定）</option>
-                <option value="izotope">iZotope使用ノイズ除去: +25%</option>
-            </select>
-        </div>
+            <div class="input-group">
+                <label>ノイズカット（ホワイトノイズ除去）:</label>
+                <select id="noiseCut" onchange="calculate()">
+                    <option value="none">なし: 0円</option>
+                    <option value="white">ホワイトノイズ除去あり: +500円（固定）</option>
+                    <option value="izotope">iZotope使用ノイズ除去:台本料金の+25%</option>
+                </select>
+            </div>
 
-        <!-- ここから新規追加 -->
-        <div class="input-group">
-            <label>スタジオ収録日数（交通費）:</label>
-            <input type="number" id="recordingDays" value="0" min="0" step="1" oninput="calculate()">
-            <span>日 (12,000円/日)</span>
-        </div>
-        <div class="input-group">
-            <label></label>
-            <input type="checkbox" id="hitsujiStudio" onchange="calculate()">
-            <span>ひつじのスタジオ利用（交通費-3,000円）</span>
-        </div>
+            <!-- ここから新規追加 -->
+            <div class="input-group">
+                <label>スタジオ収録日数（交通費）:</label>
+                <input type="number" id="recordingDays" value="0" min="0" step="1" oninput="calculate()">
+                <span>日 (12,000円/日)</span>
+            </div>
+            <div class="input-group">
+                <label></label>
+                <input type="checkbox" id="hitsujiStudio" onchange="calculate()">
+                <span>ひつじのスタジオ利用（交通費-3,000円）</span>
+            </div>
 
-        <!-- 新しく追加するSE関連オプション -->
-        <div class="input-group">
-            <label>SE挿入・指示出し編集</label>
-            <input type="checkbox" id="seInsertionEdit" onchange="calculate()">
-            <span>台本料金の+25%</span>
-        </div>
-        <div class="input-group">
-            <label>　音素材収録（ローション・ジェルボール等）　　<span style="color: red;">(SE挿入・指示出し編集に含まれるため上の項目にもチェックお願いします)</span>:</label>
-            <input type="checkbox" id="soundMaterialRec" onchange="calculate()">
-            <span>+15%（SE挿入適用時追加）</span>
-        </div>
-        <!-- ここまで -->
+            <!-- 新しく追加するSE関連オプション -->
+            <div class="input-group">
+                <label>SE挿入・指示出し編集</label>
+                <input type="checkbox" id="seInsertionEdit" onchange="calculate()">
+                <span>台本料金の+25%</span>
+            </div>
+            <div class="input-group">
+                <label>　音素材収録（ローション・ジェルボール等）　　<span style="color: red;">(SE挿入・指示出し編集に含まれるため上の項目にもチェックお願いします)</span>:</label>
+                <input type="checkbox" id="soundMaterialRec" onchange="calculate()">
+                <span>台本料金の+15%（SE挿入適用時追加）</span>
+            </div>
+            <!-- ここまで -->
 
-        <!-- 新規追加：要メールorDM相談の追加オプション -->
-        <h3 style="margin-top: 30px; border-bottom: 2px solid #ff69b4; padding-bottom: 5px;">要メールの追加オプション</h3>
-        <div class="input-group" style="margin-bottom: 8px;">
-            <span>◯歌は5500円です。（ピッチ補正mix不可）(自身が知らない曲の場合は1万1500円頂きます)</span><br>
-            <span style="margin-left: 20px;">また、ハモリなどがある場合は、1ハモリ音声につき1000円いただきます。</span>
-        </div>
-        <div class="input-group" style="margin-bottom: 8px;">
-            <span>◯ツイキャスプライベート🔑耳かき配信30分</span><br>
-            <span style="margin-left: 20px;">統一で全年齢3000円</span><br>
-            <span style="margin-left: 20px;">統一でR-15 4000円</span>
-        </div>
-        <div class="input-group" style="margin-bottom: 8px;">
-            <span>◯AI学習＋30万円〜(要相談)</span>
-        </div>
-        <div class="input-group" style="margin-bottom: 8px;">
-            <span>◯一部のAI使用＋1万円〜(要相談)</span>
-        </div>
-        <div class="input-group" style="margin-bottom: 8px;">
-            <span>◯依頼されて24時間以内の優先納品＋3000円〜(物によっては厳しいため相談をお願いします。)</span>
-        </div>
-　　　　<div class="input-group" style="margin-bottom: 8px;">
-            <span>連絡先　メール；baccag0han@gmail.com</span><br>
-　　　　　　<span style="margin-left: 20px;">Ｘ；@bacca_gohan</span><br>
-        </div>
-        <!-- ここまで -->
+            <!-- 新規追加：要メールorDM相談の追加オプション -->
+            <h3 style="margin-top: 30px; border-bottom: 2px solid #ff69b4; padding-bottom: 5px;">要メールの追加オプション</h3>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <span>◯歌は5500円です。（ピッチ補正mix不可）(自身が知らない曲の場合は1万1500円頂きます)</span><br>
+                <span style="margin-left: 20px;">また、ハモリなどがある場合は、1ハモリ音声につき1000円いただきます。</span>
+            </div>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <span>◯ツイキャスプライベート🔑耳かき配信30分</span><br>
+                <span style="margin-left: 20px;">統一で全年齢3000円</span><br>
+                <span style="margin-left: 20px;">統一でR-15 4000円</span>
+            </div>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <span>◯AI学習＋30万円〜(要相談)</span>
+            </div>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <span>◯一部のAI使用＋1万円〜(要相談)</span>
+            </div>
+            <div class="input-group" style="margin-bottom: 8px;">
+                <span>◯依頼されて24時間以内の優先納品＋3000円〜(物によっては厳しいため相談をお願いします。)</span>
+            </div>
+    　　　　<div class="input-group" style="margin-bottom: 8px;">
+                <span>連絡先　メール；baccag0han@gmail.com</span><br>
+    　　　　　　<span style="margin-left: 20px;">Ｘ；@bacca_gohan</span><br>
+            </div>
+            <!-- ここまで -->
+    </details>
+　 <div class="total" id="totalAmount2">
+                台本: 0円 + オプション: 0円 = 合計: 0円
+            </div>
 
-        <div class="total" id="totalAmount2">
-            台本: 0円 + オプション: 0円 = 合計: 0円
+            <button onclick="exportToCSV()">
+                お見積もりをMisoca形式のcsvでダウンロード
+            </button>
         </div>
-
-        <button onclick="exportToCSV()">
-            お見積もりをMisoca形式のcsvでダウンロード
-        </button>
-    </div>
-
     <div class="note" style="margin-top: 15px;">
         <strong>文字カウントの仕様について</strong>
         <ul>
