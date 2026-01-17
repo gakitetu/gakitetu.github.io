@@ -271,6 +271,7 @@
                     <option value="0">なし: 0円</option>
                     <option value="500_all">あり (全年齢/R15): +500円</option>
                     <option value="0.5_r18">あり (R18): +0.5円/文字</option>
+                    <option value="0.5_mimikaki">あり (全年齢耳かき付き/R15耳かき付き/R18耳かき付き): ×0.5</option>
                 </select>
             </div>
 
@@ -533,9 +534,7 @@
         </div>
     </div>
 
-    <!-- JavaScriptは元のコードと完全に同じ（機能変更なし） -->
     <script>
-        // （元のscript部分をそのまま貼り付け）
         const RATES = {
             FREE_TALK: 1000,
             FILE_CUT: 100,
@@ -681,7 +680,10 @@
 
             let scriptTotal = characters * (baseRate + commercialRate) + specialTotal;
 
-            if (binauralValue === '0.5_r18') {
+            // 新しい耳かき付きバイノーラルオプションの処理（文字数 × 0.5円）
+            if (binauralValue === '0.5_mimikaki') {
+                scriptTotal += characters * 0.5;
+            } else if (binauralValue === '0.5_r18') {
                 scriptTotal += characters * 0.5;
             }
 
@@ -783,7 +785,6 @@
         }
 
         function exportToCSV() {
-            // （元のexportToCSV関数をそのまま使用）
             const today = new Date();
             const invoiceDate = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
 
@@ -895,6 +896,13 @@
                 } else if (binauralValue === '0.5_r18' && characters > 0) {
                     items[idx++] = {
                         name: 'バイノーラル (R18)',
+                        quantity: characters,
+                        unit: '文字',
+                        price: 0.5
+                    };
+                } else if (binauralValue === '0.5_mimikaki' && characters > 0) {
+                    items[idx++] = {
+                        name: 'バイノーラル (全年齢耳かき付き/R15耳かき付き/R18耳かき付き)',
                         quantity: characters,
                         unit: '文字',
                         price: 0.5
