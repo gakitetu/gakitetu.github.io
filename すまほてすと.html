@@ -261,7 +261,7 @@
                 <label for="specialVoiceOption">声を張る割増料金（びっくりマークがつく叫び・絶叫・オホ声・悲鳴・大きい泣き声・嘔吐・リョナが含む場合）:</label>
                 <select id="specialVoiceOption" onchange="calculate()">
                     <option value="none">なし: 0円</option>
-                    <option value="apply">あり: 5000文字未満 +0.5円/文字、5000文字以降の超過分 +1.5円/文字</option>
+                    <option value="apply">あり (オプション加算): 5000文字未満 +0.5円/文字、5000文字以降の超過分 +1.5円/文字</option>
                 </select>
             </div>
 
@@ -589,7 +589,6 @@
 
             const baseRate = parseFloat(document.getElementById('baseRate').value) || 1.5;
             const commercialType = document.getElementById('commercialType').value || 'none';
-            const specialOption = document.getElementById('specialVoiceOption').value || 'none';
 
             let commercialRate = 0;
             if (commercialType === 'adfree_credit') commercialRate = 0.3;
@@ -597,12 +596,7 @@
             else if (commercialType === 'commercial_credit') commercialRate = 0.5;
             else if (commercialType === 'commercial_nocredit') commercialRate = 1;
 
-            let specialTotal = 0;
-            if (specialOption === 'apply' && billableChars > 0) {
-                specialTotal = getSpecialTotal(billableChars);
-            }
-
-            const basicAmount = billableChars * (baseRate + commercialRate) + specialTotal;
+            const basicAmount = billableChars * (baseRate + commercialRate);
             document.getElementById('basicAmount').textContent = Math.round(basicAmount).toLocaleString();
 
             calculate();
@@ -671,14 +665,14 @@
             if (commercialType === 'adfree_credit') commercialRate = 0.3;
             else if (commercialType === 'adfree_nocredit') commercialRate = 0.5;
             else if (commercialType === 'commercial_credit') commercialRate = 0.5;
-            else if (commercialType === 'commercial_nocredit') commercialRate = 1.5;
+            else if (commercialType === 'commercial_nocredit') commercialRate = 1;
 
             let specialTotal = 0;
             if (specialOption === 'apply' && characters > 0) {
                 specialTotal = getSpecialTotal(characters);
             }
 
-            let scriptTotal = characters * (baseRate + commercialRate) + specialTotal;
+            let scriptTotal = characters * (baseRate + commercialRate);
 
             let longAddon = 0;
             if (characters >= 5000) {
@@ -703,6 +697,9 @@
             }
 
             let optionTotal = 0;
+
+            // 声を張る割増はここでオプションとして加算
+            optionTotal += specialTotal;
 
             // 固定バイノーラル（全年齢/R15）
             if (binauralValue === '500_all') {
@@ -834,7 +831,7 @@
                     if (commercialType === 'adfree_credit') { name = '広告収入なし動画投稿・クレジット表記あり加算'; rate = 0.3; }
                     else if (commercialType === 'adfree_nocredit') { name = '広告収入なし動画投稿・クレジット表記なし加算'; rate = 0.5; }
                     else if (commercialType === 'commercial_credit') { name = '商用利用クレジット表記あり加算'; rate = 0.5; }
-                    else if (commercialType === 'commercial_nocredit') { name = '商用利用クレジット表記なし加算'; rate = 1.5; }
+                    else if (commercialType === 'commercial_nocredit') { name = '商用利用クレジット表記なし加算'; rate = 1; }
 
                     items[idx++] = {
                         name: name,
