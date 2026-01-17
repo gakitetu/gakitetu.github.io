@@ -271,7 +271,7 @@
                     <option value="0">なし: 0円</option>
                     <option value="500_all">あり (全年齢/R15): +500円</option>
                     <option value="0.5_r18">あり (R18): +0.5円/文字</option>
-                    <option value="0.5_mimikaki">あり (全年齢耳かき付き/R15耳かき付き/R18耳かき付き): ×0.5</option>
+                    <option value="0.5_mimikaki">あり (全年齢耳かき付き/R15耳かき付き/R18耳かき付き): +0.5円/文字</option>
                 </select>
             </div>
 
@@ -680,13 +680,6 @@
 
             let scriptTotal = characters * (baseRate + commercialRate) + specialTotal;
 
-            // 新しい耳かき付きバイノーラルオプションの処理（文字数 × 0.5円）
-            if (binauralValue === '0.5_mimikaki') {
-                scriptTotal += characters * 0.5;
-            } else if (binauralValue === '0.5_r18') {
-                scriptTotal += characters * 0.5;
-            }
-
             let longAddon = 0;
             if (characters >= 5000) {
                 const blocks = Math.floor(characters / 5000);
@@ -711,8 +704,14 @@
 
             let optionTotal = 0;
 
+            // 固定バイノーラル（全年齢/R15）
             if (binauralValue === '500_all') {
                 optionTotal += 500;
+            }
+
+            // +0.5円/文字のバイノーラル（R18 と 耳かき付き）はオプション側に移動
+            if (binauralValue === '0.5_r18' || binauralValue === '0.5_mimikaki') {
+                optionTotal += characters * 0.5;
             }
 
             if (noiseCut === 'white') {
