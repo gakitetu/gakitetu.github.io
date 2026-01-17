@@ -253,7 +253,7 @@
                     <option value="adfree_credit">広告収入なし動画投稿・クレジット表記あり: +0.3円/文字</option>
                     <option value="adfree_nocredit">広告収入なし動画投稿・クレジット表記なし: +0.5円/文字</option>
                     <option value="commercial_credit">商用・クレジット表記あり: +0.5円/文字</option>
-                    <option value="commercial_nocredit">商用・クレジット表記なし: +1.5円/文字</option>
+                    <option value="commercial_nocredit">商用・クレジット表記なし: +1円/文字</option>
                 </select>
             </div>
 
@@ -595,7 +595,7 @@
             if (commercialType === 'adfree_credit') commercialRate = 0.3;
             else if (commercialType === 'adfree_nocredit') commercialRate = 0.5;
             else if (commercialType === 'commercial_credit') commercialRate = 0.5;
-            else if (commercialType === 'commercial_nocredit') commercialRate = 1.5;
+            else if (commercialType === 'commercial_nocredit') commercialRate = 1;
 
             let specialTotal = 0;
             if (specialOption === 'apply' && billableChars > 0) {
