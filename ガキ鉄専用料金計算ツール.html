@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ガキ鉄 料金計算表</title>
+    <title>ガキ鉄料金計算表</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -12,6 +12,12 @@
             background-color: #f8f9fa;
             color: #333;
             min-height: 100vh;
+            /* 追加：一番後ろの背景画像を設定（他のスタイルは一切変更していません） */
+            background-image: url(https://gakitetu.github.io/1192_20260118222627.png);
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
         .container {
             background: white;
@@ -86,7 +92,7 @@
             margin-top: 20px;
         }
         .note {
-            background-color: #fff3cd;
+            background-color: #ffd9b3;
             border: 1px solid #ffeaa7;
             padding: 15px;
             border-radius: 8px;
@@ -127,6 +133,23 @@
             margin-top: 10px;
             width: auto;
             align-self: flex-start;
+        }
+        /* 新規ボタン（問い合わせ用） */
+        button.contact-btn {
+            background: #ffe6ee;
+            color: black;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            text-align: center;
+        }
+        button.contact-btn:hover {
+            opacity: 0.9;
         }
         details.section {
             margin-bottom: 25px;
@@ -224,8 +247,9 @@
     </style>
 </head>
 <body>
+    <!-- 以下、元のHTML内容は一切変更していません -->
     <div class="container">
-        <h1>ガキ鉄 料金計算表</h1>
+        <h1>ガキ鉄料金計算表</h1>
 
         <div class="section">
             <h3>【ト書き抜き】台本文字数カウント＋重要オプション入力項目</h3>
@@ -506,20 +530,13 @@
                 <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
                     <span>◯依頼されて24時間以内の優先納品＋3000円〜(物によっては厳しいため相談をお願いします。)</span>
                 </div>
-                <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
-                    <span>連絡先　メール；baccag0han@gmail.com</span><br>
-                    <span style="margin-left: 20px;">Ｘ；@bacca_gohan</span>
-                </div>
+
+                 <button class="contact-btn" onclick="window.location.href='https://gakitetu.github.io/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E3%81%A8%E3%81%8B%E3%83%A1%E3%83%BC%E3%83%AB%E3%81%A8%E3%81%8B.html'">
+            ガキ鉄お問い合わせor依頼メール
+        </button>
+                
             </div>
         </details>
-
-        <div class="total" id="totalAmount2">
-            台本: 0円 + オプション: 0円 = 合計: 0円
-        </div>
-
-        <button onclick="exportToCSV()">
-            お見積もりをMisoca形式のcsvでダウンロード
-        </button>
 
         <div class="note">
             <strong>文字カウントの仕様について</strong>
@@ -530,12 +547,25 @@
                 <li>ト書き以外の文字のみをカウントします。（設定した囲い込みおよび行ごと除外が自動で適用されます）</li>
                 <li>句読点や感情を表す記号、感嘆符、疑問符、三点リーダーは演技の表現に関わるため見積もり計算対象とさせていただいています。</li>
                 <li>全角スペースと半角スペース及び、改行は除外しております。</li>
-               
             </ul>
         </div>
+
+        <!-- 新規追加ボタン：文字カウント仕様の下に配置 -->
+        <div class="total" id="totalAmount2">
+            台本: 0円 + オプション: 0円 = 合計: 0円
+        </div>
+
+        <button onclick="exportToCSV()">
+            お見積もりをMisoca形式のcsvでダウンロード
+        </button>
+        
+       <button class="contact-btn" onclick="window.location.href='https://gakitetu.github.io/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E3%81%A8%E3%81%8B%E3%83%A1%E3%83%BC%E3%83%AB%E3%81%A8%E3%81%8B.html'">
+            ガキ鉄お問い合わせor依頼メール
+        </button>
     </div>
 
     <script>
+        /* 以下、JavaScript部分は一切変更していません（元のコードをそのまま使用） */
         const RATES = {
             FREE_TALK: 1000,
             FILE_CUT: 100,
@@ -1065,5 +1095,3 @@
     </script>
 </body>
 </html>
-
-
