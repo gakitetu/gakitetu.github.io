@@ -3,1095 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ガキ鉄料金計算表</title>
+    <title>ガキ鉄収録予定カレンダー</title>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background: linear-gradient(to bottom, #fff0f8, #ffe4f0);
+            color: #000;
             margin: 0;
-            padding: 10px;
-            background-color: #f8f9fa;
-            color: #333;
+            padding: 20px 10px;
             min-height: 100vh;
-            /* 追加：一番後ろの背景画像を設定（他のスタイルは一切変更していません） */
-            background-image: url(https://gakitetu.github.io/1192_20260118222627.png);
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
         }
         .container {
-            background: white;
-            border-radius: 10px;
+            max-width: 900px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 40px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-            max-width: 100%;
-            box-sizing: border-box;
+            box-shadow: 0 15px 40px rgba(255, 182, 193, 0.6);
         }
         h1 {
-            color: #ff69b4;
+            font-size: 2.8em;
+            margin: 0 0 20px;
+            text-shadow: 3px 3px 6px #ffb6c1;
             text-align: center;
-            margin-bottom: 30px;
+        }
+        h1::before { content: " "; font-size: 1.2em; }
+        h1::after { content: " "; font-size: 1.2em; }
+        #auth-status {
+            text-align: center;
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        #login-btn, #logout-btn {
+            background: #d1478a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 0 8px;
+            font-size: 1.1em;
+        }
+        #logout-btn { background: #ff69b4; }
+        #month-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-size: 1.6em;
+            font-weight: bold;
+        }
+        #month-nav button {
+            background: #ff99cc;
+            border: none;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
             font-size: 1.8em;
+            cursor: pointer;
         }
-        .section {
-            margin-bottom: 25px;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #fafafa;
+        .table-wrapper { 
+            overflow-x: auto; 
+            border-radius: 20px; 
+            -webkit-overflow-scrolling: touch;
         }
-        .section h3 {
-            color: #4a4a4a;
-            margin-top: 0;
-            border-bottom: 2px solid #ff69b4;
-            padding-bottom: 5px;
-            font-size: 1.2em;
+        table {
+            width: 100%;
+            min-width: 620px;
+            border-collapse: collapse;
+            background: #fffafa;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(255, 105, 180, 0.3);
         }
-        .input-group {
-            margin-bottom: 18px;
+        th { background: #ffcccb; padding: 14px; font-size: 1.3em; }
+        td {
+            height: 110px;
+            border: 2px solid #ffb6c1;
+            vertical-align: top;
+            position: relative;
+            cursor: default;
+        }
+        td.other-month { opacity: 0.4; }
+        td.today { background: #ffccff !important; }
+        .day-number { font-size: 1.7em; font-weight: bold; padding: 10px; }
+        .mark { 
+            position: absolute; 
+            bottom: 10px; 
+            right: 12px; 
+            font-size: 3.2em; 
+            pointer-events: none;
+            text-shadow: 2px 2px 4px #ffb6c1;
+        }
+        th:nth-child(7), td:nth-child(7) { color: #e63946; }
+        th:nth-child(6), td:nth-child(6) { color: #4361ee; }
+
+        /* 凡例スタイル */
+        #legend {
+            margin-top: 40px;
+            text-align: center;
+        }
+        #legend h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px #ffb6c1;
+        }
+        .legend-items {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .legend-item {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-        }
-        label {
-            font-weight: bold;
-            color: #555;
-            font-size: 0.95em;
-        }
-        input[type="number"],
-        input[type="text"],
-        select,
-        textarea {
-            width: 100%;
-            max-width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 1em;
-        }
-        input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            margin-right: 8px;
-            accent-color: #ff69b4;
-        }
-        .checkbox-label {
-            display: flex;
             align-items: center;
-            font-size: 0.95em;
         }
-        .total {
-            background-color: #ff69b4;
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-            font-size: 1.3em;
-            font-weight: bold;
-            margin-top: 20px;
+        .legend-mark {
+            font-size: 3em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px #ffb6c1;
         }
-        .note {
-            background-color: #ffd9b3;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 0.9em;
-        }
-        .count-result {
-            background-color: #e8f5e8;
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #c3e6c3;
-            margin-bottom: 15px;
-            font-size: 1.1em;
-        }
-        button {
-            background: #e8f5e8;
-            color: #2d6a4f;
-            border: 1px solid #95d5b2;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-            text-align: center;
-        }
-        button:hover {
-            opacity: 0.9;
-        }
-        button.add-btn {
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 10px 16px;
-            font-size: 0.95em;
-            margin-top: 10px;
-            width: auto;
-            align-self: flex-start;
-        }
-        /* 新規ボタン（問い合わせ用） */
-        button.contact-btn {
-            background: #ffe6ee;
-            color: black;
-            border: none;
-            border-radius: 8px;
-            padding: 15px;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 20px;
-            text-align: center;
-        }
-        button.contact-btn:hover {
-            opacity: 0.9;
-        }
-        details.section {
-            margin-bottom: 25px;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background-color: #fafafa;
-        }
-        details.section > summary {
-            list-style: none;
-            cursor: pointer;
-            padding: 15px;
-            color: #4a4a4a;
-            border-bottom: 2px solid #ff69b4;
-            border-radius: 8px 8px 0 0;
-            background-color: #fafafa;
-            font-size: 1.1em;
-            font-weight: bold;
-        }
-        details.section > summary::-webkit-details-marker {
-            display: none;
-        }
-        details.section > summary::before {
-            content: "▼ ";
-            color: #ff69b4;
-            font-weight: bold;
-            margin-right: 8px;
-            font-size: 1.2em;
-        }
-        details.section[open] > summary::before {
-            content: "▲ ";
-        }
-        details.section > div.content {
-            padding: 15px;
-        }
-        /* 括弧・除外行のコンテナ（スマホ対応） */
-        #bracketPairsContainer,
-        #excludeLinesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 6px;
-            background-color: #fff;
-        }
-        .bracket-pair-item,
-        .exclude-line-item {
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 6px;
-            min-width: 100px;
-            flex: 1 1 120px;
-            max-width: 180px;
-        }
-        .bracket-pair-item input,
-        .exclude-line-item input {
-            width: 30px;
-            padding: 6px;
-            text-align: center;
-            font-size: 0.9em;
-        }
-        .exclude-line-item input {
-            flex: 1;
-            width: auto;
-        }
-        /* レスポンシブ調整 */
+
+        /* スマホ対応 */
         @media (max-width: 768px) {
-            .container {
-                padding: 15px;
+            body { padding: 15px 8px; }
+            .container { padding: 18px; border-radius: 30px; }
+            h1 { font-size: 2.1em; margin-bottom: 15px; }
+            #auth-status { font-size: 1.05em; margin: 15px 0; }
+            #login-btn, #logout-btn { 
+                padding: 14px 28px; 
+                font-size: 1.15em; 
+                margin: 0 10px; 
             }
-            h1 {
-                font-size: 1.6em;
+            #month-nav { 
+                margin: 25px 0; 
+                font-size: 1.5em; 
             }
-            .section {
-                padding: 12px;
+            #month-nav button { 
+                width: 60px; 
+                height: 60px; 
+                font-size: 2em; 
             }
-            textarea#scriptText {
-                height: 250px;
-                font-size: 1em;
+            table {
+                min-width: 0;
+                table-layout: fixed;
             }
-            .total {
-                font-size: 1.2em;
+            th { padding: 10px; font-size: 1.1em; }
+            td { height: 78px; }
+            .day-number { font-size: 1.3em; padding: 6px; }
+            .mark { 
+                font-size: 2.3em; 
+                bottom: 6px; 
+                right: 8px; 
             }
-            button {
-                font-size: 1.1em;
-                padding: 14px;
-            }
+            #legend { margin-top: 30px; }
+            #legend h3 { font-size: 1.6em; }
+            .legend-items { gap: 20px; }
+            .legend-mark { font-size: 2.5em; }
+        }
+
+        @media (max-width: 480px) {
+            h1 { font-size: 1.9em; }
+            #month-nav { font-size: 1.4em; }
+            #month-nav button { width: 55px; height: 55px; font-size: 1.8em; }
+            th { padding: 8px; font-size: 1.0em; }
+            td { height: 70px; }
+            .day-number { font-size: 1.2em; padding: 5px; }
+            .mark { font-size: 2.1em; bottom: 5px; right: 6px; }
+            .legend-items { gap: 15px; }
+            .legend-mark { font-size: 2.2em; }
         }
     </style>
 </head>
 <body>
-    <!-- 以下、元のHTML内容は一切変更していません -->
     <div class="container">
-        <h1>ガキ鉄料金計算表</h1>
-
-        <div class="section">
-            <h3>【ト書き抜き】台本文字数カウント＋重要オプション入力項目</h3>
-            <div class="input-group">
-                <div class="checkbox-label">
-                    <input type="checkbox" id="sampleCharge" onchange="calculate()">
-                    <label for="sampleCharge">正式依頼前のサンプル料金（200文字限定）: +500円（最初に提供してくれたサンプルと同じセリフなら何回でも読む場合は何度でも承る）</label>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <label for="baseRate">通常：1文字</label>
-                <select id="baseRate" onchange="calculate()">
-                    <option value="1.5">iikoe 全年齢(仲介経由): 1.5円</option>
-                    <option value="2.5">iikoe R15orR18(仲介経由): 2.5円</option>
-                    <option value="1">メール 全年齢(HP経由): 1円</option>
-                    <option value="2">メール R15orR18(HP経由): 2円</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="commercialType">商用利用の種類:</label>
-                <select id="commercialType" onchange="calculate()">
-                    <option value="none">個人観賞用 (非商用): 0円</option>
-                    <option value="adfree_credit">広告収入なし動画投稿・クレジット表記あり: +0.3円/文字</option>
-                    <option value="adfree_nocredit">広告収入なし動画投稿・クレジット表記なし: +0.5円/文字</option>
-                    <option value="commercial_credit">商用・クレジット表記あり: +0.5円/文字</option>
-                    <option value="commercial_nocredit">商用・クレジット表記なし: +1円/文字</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="specialVoiceOption">声を張る割増料金（びっくりマークがつく叫び・絶叫・オホ声・悲鳴・大きい泣き声・嘔吐・リョナが含む場合）:</label>
-                <select id="specialVoiceOption" onchange="calculate()">
-                    <option value="none">なし: 0円</option>
-                    <option value="apply">あり: 5000文字未満 +0.5円/文字、5000文字以降の超過分 +1.5円/文字</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label for="binauralRate">バイノーラルの有無:</label>
-                <select id="binauralRate" onchange="calculate()">
-                    <option value="0">なし: 0円</option>
-                    <option value="500_all">あり (全年齢/R15): +500円</option>
-                    <option value="0.5_r18">あり (R18): +0.5円/文字</option>
-                    <option value="0.5_mimikaki">あり (全年齢耳かき付き/R15耳かき付き/R18耳かき付き): +0.5円/文字</option>
-                </select>
-            </div>
-
-            <div class="total" id="totalAmount">
-                台本: 0円 + オプション: 0円 = 合計: 0円
-            </div>
-
-            <div class="count-result">
-                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
-                    <span><strong>文字数:</strong> <span id="billableChars">0</span>文字</span>
-                    <span><strong>台本料金:</strong> <span id="basicAmount">0</span>円</span>
-                </div>
-            </div>
-
-            <textarea id="scriptText" placeholder="台本をここに貼り付け" oninput="countCharacters()"></textarea>
+        <h1>ガキ鉄収録予定カレンダー</h1>
+        <div id="auth-status">ログインしてね</div>
+        <div style="text-align:center; margin:10px 0;">
+            <button id="login-btn">ログイン</button>
+            <button id="logout-btn" style="display:none;">ログアウト</button>
+        </div>
+        <div id="month-nav">
+            <button id="prev-month">〈</button>
+            <span id="current-month"></span>
+            <button id="next-month">〉</button>
+        </div>
+        <div class="table-wrapper">
+            <table id="calendar">
+                <thead>
+                    <tr>
+                        <th>月</th><th>火</th><th>水</th><th>木</th><th>金</th><th>土</th><th>日</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <details class="section">
-            <summary>ト書きの除外設定</summary>
-            <div class="content">
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: bold;">囲い込み</label>
-                    <div id="bracketPairsContainer">
-                        <!-- デフォルトの括弧ペア（変更なし） -->
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="（" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value="）" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="(" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value=")" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="【" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value="】" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="〔" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value="〕" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="〈" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value="〉" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="《" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value="》" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                        <div class="bracket-pair-item">
-                            <input type="text" class="bracket-start-input" value="≪" oninput="countCharacters()">
-                            <input type="text" class="bracket-end-input" value="≫" oninput="countCharacters()">
-                            <span onclick="removeBracketPair(this)">✕</span>
-                        </div>
-                    </div>
-                    <button class="add-btn" onclick="addBracketPair()">追加</button>
+        <!-- マークの説明（新規追加） -->
+        <div id="legend">
+            <h3>マークの説明</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-mark">◎</div>
+                    <p>予約受付中</p>
                 </div>
-
-                <div style="margin-bottom: 20px;">
-                    <label style="font-weight: bold;">行ごと</label>
-                    <div id="excludeLinesContainer">
-                        <!-- デフォルトの除外行（変更なし） -->
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="◇" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="◇" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="■" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="■" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="◆" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="◆" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="□" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="□" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="//" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="//" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="ＳＥ" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="ＳＥ" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="SE" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="SE" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="トラック" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="※" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                        <div class="exclude-line-item">
-                            <input type="text" class="exclude-line-input" value="※" oninput="countCharacters()">
-                            <span onclick="removeExcludeLine(this)">✕</span>
-                        </div>
-                    </div>
-                    <button class="add-btn" onclick="addExcludeLine()">追加</button>
+                <div class="legend-item">
+                    <div class="legend-mark">〇</div>
+                    <p>5000字まで可能</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-mark">△</div>
+                    <p>2000字まで可能</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-mark">×</div>
+                    <p>予約不可</p>
                 </div>
             </div>
-        </details>
-
-        <details class="section">
-            <summary>追加オプション</summary>
-            <div class="content">
-                <div class="input-group">
-                    <label for="freeTalkMinutes">フリートーク:</label>
-                    <input type="number" id="freeTalkMinutes" value="0" min="0" oninput="calculate()">
-                    <span style="font-size:0.9em;">分 (1000円/5分毎固定)</span>
-                </div>
-
-                <div class="input-group">
-                    <label for="adlibMinutes">アドリブ（台本に書いてない喘ぎやリップ音）:</label>
-                    <input type="number" id="adlibMinutes" value="0" min="0" step="0.1" oninput="calculate()">
-                    <span style="font-size:0.9em;">分 (累計2分無料、超過分は1分単位切り上げで500円/分)</span>
-                </div>
-
-                <div class="input-group">
-                    <label for="burpFartCount">ゲップorおならの音:</label>
-                    <input type="number" id="burpFartCount" value="0" min="0" oninput="calculate()">
-                    <span style="font-size:0.9em;">回 (5回まで600円、超過1回ごとに200円)</span>
-                </div>
-
-                <div class="input-group">
-                    <label for="fileCuts">ファイルカット数:</label>
-                    <input type="number" id="fileCuts" value="0" min="0" oninput="calculate()">
-                    <span style="font-size:0.9em;">カット (100円/カット)</span>
-                </div>
-
-                <div class="input-group">
-                    <label for="extraCharacters">一人多役 (追加役数):</label>
-                    <input type="number" id="extraCharacters" value="0" min="0" oninput="calculate()">
-                    <span style="font-size:0.9em;">役 (全年齢:1,000円 / R15またはR18:2,000円 / バイノーラルありの場合+1,000円/役)</span>
-                </div>
-
-                <div class="input-group">
-                    <div class="checkbox-label">
-                        <input type="checkbox" id="videoSync" onchange="calculate()">
-                        <label for="videoSync">動画合わせ(アテレコ): 台本料金の+25%</label>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <label for="noiseCut">ノイズカット（ホワイトノイズ除去）:</label>
-                    <select id="noiseCut" onchange="calculate()">
-                        <option value="none">なし: 0円</option>
-                        <option value="white">ホワイトノイズ除去あり: +500円（固定）</option>
-                        <option value="izotope">iZotope使用ノイズ除去:台本料金の+25%</option>
-                    </select>
-                </div>
-
-                <div class="input-group">
-                    <label for="recordingDays">スタジオ収録日数（交通費）:</label>
-                    <input type="number" id="recordingDays" value="0" min="0" step="1" oninput="calculate()">
-                    <span style="font-size:0.9em;">日 (12,000円/日)</span>
-                </div>
-                <div class="input-group">
-                    <div class="checkbox-label">
-                        <input type="checkbox" id="hitsujiStudio" onchange="calculate()">
-                        <label for="hitsujiStudio">ひつじのスタジオ利用（交通費-3,000円）</label>
-                    </div>
-                </div>
-
-                <div class="input-group">
-                    <div class="checkbox-label">
-                        <input type="checkbox" id="seInsertionEdit" onchange="calculate()">
-                        <label for="seInsertionEdit">SE挿入・指示出し編集: 台本料金の+25%</label>
-                    </div>
-                </div>
-                <div class="input-group">
-                    <div class="checkbox-label">
-                        <input type="checkbox" id="soundMaterialRec" onchange="calculate()">
-                        <label for="soundMaterialRec">音素材収録（ローション・ジェルボール等）　<span style="color: red;">(SE挿入・指示出し編集に含まれるため上の項目にもチェックお願いします)</span>: 台本料金の+15%（SE挿入適用時追加）</label>
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 30px; border-bottom: 2px solid #ff69b4; padding-bottom: 5px; font-size: 1.1em;">要メールの追加オプション</h3>
-                <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
-                    <span>◯歌は5500円です。（ピッチ補正mix不可）(自身が知らない曲の場合は1万1500円頂きます)</span><br>
-                    <span style="margin-left: 20px;">また、ハモリなどがある場合は、1ハモリ音声につき1000円いただきます。</span>
-                </div>
-                <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
-                    <span>◯ツイキャスプライベート🔑耳かき配信30分</span><br>
-                    <span style="margin-left: 20px;">統一で全年齢3000円</span><br>
-                    <span style="margin-left: 20px;">統一でR-15 4000円</span>
-                </div>
-                <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
-                    <span>◯AI学習＋30万円〜(要相談)</span>
-                </div>
-                <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
-                    <span>◯一部のAI使用＋1万円〜(要相談)</span>
-                </div>
-                <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
-                    <span>◯依頼されて24時間以内の優先納品＋3000円〜(物によっては厳しいため相談をお願いします。)</span>
-                </div>
-
-                 <button class="contact-btn" onclick="window.location.href='https://gakitetu.github.io/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E3%81%A8%E3%81%8B%E3%83%A1%E3%83%BC%E3%83%AB%E3%81%A8%E3%81%8B.html'">
-            ガキ鉄お問い合わせor依頼メール
-        </button>
-                
-            </div>
-        </details>
-
-        <div class="note">
-            <strong>文字カウントの仕様について</strong>
-            <ul>
-                <li>500文字未満の場合、商用、個人使用問わず文字数カウントは含まないで固定で最低500円かかります。R15またはR18の場合は250文字未満で固定で500円それらを超えて500文字未満ですと固定で最低料金1000円かかります。(料金表デフォルト設定済み）</li>
-                <li>5000文字を超えた場合＋1000円、3回目以降5000文字を超える場合はずっと500円ずつ加算されます。(料金表デフォルト設定済み）(例:1万円に到達した際はさらに5000文字なので追加で1000円、そして1万5000文字を超え始めたてからは500円ずつ加算される)</li>
-                <li>都内への収録をご希望の場合は3万円以上の依頼からとして、さらに交通費を12000円からいただきます。スタジオ予約やスタジオ利用料金などは依頼者様負担でお願いします。こちらのスタジオでの収録であれば交通費を3000円ほど割引いたします！https://hitsujinostudio.mystrikingly.com/</li>
-                <li>ト書き以外の文字のみをカウントします。（設定した囲い込みおよび行ごと除外が自動で適用されます）</li>
-                <li>句読点や感情を表す記号、感嘆符、疑問符、三点リーダーは演技の表現に関わるため見積もり計算対象とさせていただいています。</li>
-                <li>全角スペースと半角スペース及び、改行は除外しております。</li>
-            </ul>
         </div>
-
-        <!-- 新規追加ボタン：文字カウント仕様の下に配置 -->
-        <div class="total" id="totalAmount2">
-            台本: 0円 + オプション: 0円 = 合計: 0円
-        </div>
-
-        <button onclick="exportToCSV()">
-            お見積もりをMisoca形式のcsvでダウンロード
-        </button>
-        
-       <button class="contact-btn" onclick="window.location.href='https://gakitetu.github.io/%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B%E3%81%A8%E3%81%8B%E3%83%A1%E3%83%BC%E3%83%AB%E3%81%A8%E3%81%8B.html'">
-            ガキ鉄お問い合わせor依頼メール
-        </button>
     </div>
 
-    <script>
-        /* 以下、JavaScript部分は一切変更していません（元のコードをそのまま使用） */
-        const RATES = {
-            FREE_TALK: 1000,
-            FILE_CUT: 100,
-            VIDEO_SYNC_PERCENT: 25,
-            IZOTOPE_PERCENT: 25,
-            BINAURAL_EXTRA_PER_ROLE: 1000
-        };
+<script>
+    // ★★★ あなたのfirebaseConfigをここに貼ってね ★★★
+    const firebaseConfig = {
+  apiKey: "AIzaSyA3CTwSfNS4MeyzTGCtkUA91hQWxlXilxU",
+  authDomain: "gakitetucalendar.firebaseapp.com",
+  databaseURL: "https://gakitetucalendar-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "gakitetucalendar",
+  storageBucket: "gakitetucalendar.firebasestorage.app",
+  messagingSenderId: "710575500149",
+  appId: "1:710575500149:web:fd1f425bc26367cd3dc13c",
+  measurementId: "G-3SS0KKBRZ2"
+};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const eventsRef = db.ref('events');
 
-        function getSpecialTotal(characters) {
-            if (characters <= 4999) {
-                return characters * 0.5;
-            } else {
-                return (4999 * 0.5) + ((characters - 4999) * 1.5);
-            }
+    let currentUser = null;
+    let events = {};
+
+    const months = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"];
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+
+    const calendarBody = document.querySelector('#calendar tbody');
+    const currentMonthSpan = document.getElementById('current-month');
+    const authStatus = document.getElementById('auth-status');
+    const loginBtn = document.getElementById('login-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
+    // ログイン状態監視
+    auth.onAuthStateChanged((user) => {
+        currentUser = user;
+        if (user) {
+            authStatus.textContent = `ログイン中: ${user.email} （編集できます）`;
+            loginBtn.style.display = 'none';
+            logoutBtn.style.display = 'inline-block';
+        } else {
+            authStatus.textContent = '予定が見れます（編集はログインしてね）';
+            loginBtn.style.display = 'inline-block';
+            logoutBtn.style.display = 'none';
         }
+        renderCalendar();
+    });
 
-        function removeDirectives(text) {
-            let cleaned = text;
-
-            const bracketPairItems = document.querySelectorAll('.bracket-pair-item');
-            bracketPairItems.forEach(item => {
-                const startChar = item.querySelector('.bracket-start-input').value;
-                const endChar = item.querySelector('.bracket-end-input').value;
-                if (startChar && endChar) {
-                    const escapedStart = startChar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const escapedEnd = endChar.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp(escapedStart + '[^' + escapedEnd + ']*' + escapedEnd, 'g');
-                    cleaned = cleaned.replace(regex, '');
-                }
-            });
-
-            const excludeLineInputs = document.querySelectorAll('.exclude-line-input');
-            excludeLineInputs.forEach(input => {
-                const pattern = input.value.trim();
-                if (pattern) {
-                    const escapedPattern = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                    const regex = new RegExp('^' + escapedPattern + '.*(?:\\r\\n|\\r|\\n|$)', 'gm');
-                    cleaned = cleaned.replace(regex, '');
-                }
-            });
-
-            cleaned = cleaned.replace(/[\s　\r\n]/g, '');
-            return cleaned;
+    // ログイン処理
+    loginBtn.onclick = () => {
+        const email = prompt('メールアドレスを入力してね:');
+        const password = prompt('パスワードを入力してね:');
+        if (email && password) {
+            auth.signInWithEmailAndPassword(email, password)
+                .catch((error) => alert('ログイン失敗: ' + error.message));
         }
+    };
 
-        function countCharacters() {
-            const text = document.getElementById('scriptText').value;
-            const billableText = removeDirectives(text);
-            const billableChars = billableText.length;
+    // ログアウト
+    logoutBtn.onclick = () => {
+        auth.signOut();
+    };
 
-            document.getElementById('billableChars').textContent = billableChars.toLocaleString();
+    // データ取得（リアルタイム）
+    eventsRef.on('value', (snapshot) => {
+        events = snapshot.val() || {};
+        renderCalendar();
+    });
 
-            const baseRate = parseFloat(document.getElementById('baseRate').value) || 1.5;
-            const commercialType = document.getElementById('commercialType').value || 'none';
+    function renderCalendar() {
+        calendarBody.innerHTML = '';
+        const firstDay = new Date(currentYear, currentMonth, 1);
+        const todayStr = new Date().toISOString().split('T')[0];
 
-            let commercialRate = 0;
-            if (commercialType === 'adfree_credit') commercialRate = 0.3;
-            else if (commercialType === 'adfree_nocredit') commercialRate = 0.5;
-            else if (commercialType === 'commercial_credit') commercialRate = 0.5;
-            else if (commercialType === 'commercial_nocredit') commercialRate = 1;
+        let startDay = firstDay.getDay();
+        if (startDay === 0) startDay = 7;
+        const startDate = new Date(firstDay);
+        startDate.setDate(firstDay.getDate() - (startDay - 1));
 
-            const basicAmount = billableChars * (baseRate + commercialRate);
-            document.getElementById('basicAmount').textContent = Math.round(basicAmount).toLocaleString();
+        currentMonthSpan.textContent = `${currentYear}年 ${months[currentMonth]}`;
 
-            calculate();
-        }
+        // マークの順番（クリックでこの順に循環）
+        const markOptions = ['◎', '〇', '△', '×', '']; // 最後の''は「マークなし」
 
-        function addBracketPair() {
-            const container = document.getElementById('bracketPairsContainer');
-            const newItem = document.createElement('div');
-            newItem.className = 'bracket-pair-item';
-            newItem.innerHTML = `
-                <input type="text" class="bracket-start-input" placeholder="開始" oninput="countCharacters()">
-                <input type="text" class="bracket-end-input" placeholder="終了" oninput="countCharacters()">
-                <span onclick="removeBracketPair(this)">✕</span>
-            `;
-            container.appendChild(newItem);
-        }
+        let row = document.createElement('tr');
+        for (let i = 0; i < 42; i++) {
+            const date = new Date(startDate);
+            date.setDate(startDate.getDate() + i);
+            const dateStr = date.toISOString().split('T')[0];
 
-        function removeBracketPair(span) {
-            span.parentElement.remove();
-            countCharacters();
-        }
+            const cell = document.createElement('td');
+            if (date.getMonth() !== currentMonth) cell.classList.add('other-month');
+            if (dateStr === todayStr) cell.classList.add('today');
 
-        function addExcludeLine() {
-            const container = document.getElementById('excludeLinesContainer');
-            const newItem = document.createElement('div');
-            newItem.className = 'exclude-line-item';
-            newItem.innerHTML = `
-                <input type="text" class="exclude-line-input" placeholder="パターン" oninput="countCharacters()">
-                <span onclick="removeExcludeLine(this)">✕</span>
-            `;
-            container.appendChild(newItem);
-        }
+            const dayDiv = document.createElement('div');
+            dayDiv.className = 'day-number';
+            dayDiv.textContent = date.getDate();
+            cell.appendChild(dayDiv);
 
-        function removeExcludeLine(span) {
-            span.parentElement.remove();
-            countCharacters();
-        }
-
-        function calculate() {
-            const characters = parseInt(document.getElementById('billableChars').textContent.replace(/,/g, '')) || 0;
-            const sampleChargeChecked = document.getElementById('sampleCharge').checked;
-
-            if (sampleChargeChecked) {
-                if (characters > 200) {
-                    alert('サンプル料金は200文字以内に限定されています。チェックを外すか、文字数を減らしてください。');
-                    document.getElementById('sampleCharge').checked = false;
-                    calculate();
-                    return;
-                } else {
-                    document.getElementById('basicAmount').textContent = '0';
-                    const formatted = 'サンプル料金: 500円（他のオプションは適用されません）';
-                    document.getElementById('totalAmount').textContent = formatted;
-                    document.getElementById('totalAmount2').textContent = formatted;
-                    return;
+            // マーク表示（過去の♥→trueデータは◎として扱う）
+            let currentMark = '';
+            if (events[dateStr]) {
+                if (typeof events[dateStr] === 'boolean' && events[dateStr]) {
+                    currentMark = '◎';
+                } else if (typeof events[dateStr] === 'string') {
+                    currentMark = events[dateStr];
                 }
             }
-
-            const baseRate = parseFloat(document.getElementById('baseRate').value) || 1.5;
-            const commercialType = document.getElementById('commercialType').value || 'none';
-            const specialOption = document.getElementById('specialVoiceOption').value || 'none';
-            const binauralValue = document.getElementById('binauralRate').value;
-            const noiseCut = document.getElementById('noiseCut').value;
-            const extraCharacters = parseInt(document.getElementById('extraCharacters').value) || 0;
-
-            let commercialRate = 0;
-            if (commercialType === 'adfree_credit') commercialRate = 0.3;
-            else if (commercialType === 'adfree_nocredit') commercialRate = 0.5;
-            else if (commercialType === 'commercial_credit') commercialRate = 0.5;
-            else if (commercialType === 'commercial_nocredit') commercialRate = 1;
-
-            let specialTotal = 0;
-            if (specialOption === 'apply' && characters > 0) {
-                specialTotal = getSpecialTotal(characters);
+            if (currentMark && currentMark !== '') {
+                const mark = document.createElement('div');
+                mark.className = 'mark';
+                mark.textContent = currentMark;
+                cell.appendChild(mark);
             }
 
-            let scriptTotal = characters * (baseRate + commercialRate);
+            // ログイン時のみクリックでマークを循環
+            if (currentUser) {
+                cell.style.cursor = 'pointer';
+                cell.onclick = () => {
+                    let current = events[dateStr] || '';
+                    if (typeof current === 'boolean' && current) {
+                        current = '◎';
+                    }
 
-            let longAddon = 0;
-            if (characters >= 5000) {
-                const blocks = Math.floor(characters / 5000);
-                for (let i = 1; i <= blocks; i++) {
-                    if (i <= 2) {
-                        longAddon += 1000;
+                    let index = markOptions.indexOf(current);
+                    if (index === -1) index = -1; // 不正な値の場合は次から開始
+                    index = (index + 1) % markOptions.length;
+                    const nextMark = markOptions[index];
+
+                    if (nextMark === '') {
+                        eventsRef.child(dateStr).remove();
                     } else {
-                        longAddon += 500;
+                        eventsRef.child(dateStr).set(nextMark);
                     }
-                }
-            }
-            scriptTotal += longAddon;
-
-            if (characters > 0 && characters < 500) {
-                const isR18 = (baseRate === 2 || baseRate === 2.5);
-                let minCharge = 500;
-                if (isR18 && characters >= 250) {
-                    minCharge = 1000;
-                }
-                scriptTotal = Math.max(scriptTotal, minCharge);
-            }
-
-            let optionTotal = 0;
-
-            // 声を張る割増はここでオプションとして加算
-            optionTotal += specialTotal;
-
-            // 固定バイノーラル（全年齢/R15）
-            if (binauralValue === '500_all') {
-                optionTotal += 500;
-            }
-
-            // +0.5円/文字のバイノーラル（R18 と 耳かき付き）はオプション側に移動
-            if (binauralValue === '0.5_r18' || binauralValue === '0.5_mimikaki') {
-                optionTotal += characters * 0.5;
-            }
-
-            if (noiseCut === 'white') {
-                optionTotal += 500;
-            } else if (noiseCut === 'izotope') {
-                const scriptForPercent = characters * baseRate;
-                optionTotal += scriptForPercent * (RATES.IZOTOPE_PERCENT / 100);
-            }
-
-            const adlibMinutes = parseFloat(document.getElementById('adlibMinutes').value) || 0;
-            let adlibCost = 0;
-            if (adlibMinutes > 2) {
-                const excessMinutes = adlibMinutes - 2;
-                const billedMinutes = Math.ceil(excessMinutes);
-                adlibCost = billedMinutes * 500;
-            }
-            optionTotal += adlibCost;
-
-            const burpFartCount = parseInt(document.getElementById('burpFartCount').value) || 0;
-            let burpFartCost = 0;
-            if (burpFartCount > 0) {
-                burpFartCost = 600;
-                if (burpFartCount > 5) {
-                    burpFartCost += (burpFartCount - 5) * 200;
-                }
-            }
-            optionTotal += burpFartCost;
-
-            const freeTalkMinutes = parseInt(document.getElementById('freeTalkMinutes').value) || 0;
-            const freeTalkUnits = Math.floor(freeTalkMinutes / 5);
-            optionTotal += freeTalkUnits * 1000;
-
-            const fileCuts = parseInt(document.getElementById('fileCuts').value) || 0;
-            optionTotal += fileCuts * RATES.FILE_CUT;
-
-            if (extraCharacters > 0) {
-                const isAllAge = [1, 1.5].includes(baseRate);
-                const baseExtraRate = isAllAge ? 1000 : 2000;
-                const binauralExtraRate = (binauralValue !== '0') ? RATES.BINAURAL_EXTRA_PER_ROLE : 0;
-                optionTotal += extraCharacters * (baseExtraRate + binauralExtraRate);
-            }
-
-            const scriptForPercent = characters * baseRate;
-
-            if (document.getElementById('videoSync').checked) {
-                optionTotal += scriptForPercent * (RATES.VIDEO_SYNC_PERCENT / 100);
-            }
-
-            const recordingDays = parseInt(document.getElementById('recordingDays').value) || 0;
-            let trafficFee = recordingDays * 12000;
-            if (document.getElementById('hitsujiStudio').checked && recordingDays > 0) {
-                trafficFee -= 3000;
-            }
-            optionTotal += Math.max(0, trafficFee);
-
-            const seInsertionEdit = document.getElementById('seInsertionEdit').checked;
-            const soundMaterialRec = document.getElementById('soundMaterialRec').checked;
-            if (seInsertionEdit) {
-                optionTotal += scriptForPercent * 0.25;
-                if (soundMaterialRec) {
-                    optionTotal += scriptForPercent * 0.15;
-                }
-            }
-
-            const total = scriptTotal + optionTotal;
-
-            const formatted = `台本: ${Math.round(scriptTotal).toLocaleString()}円 + オプション: ${Math.round(optionTotal).toLocaleString()}円 = 合計: ${Math.round(total).toLocaleString()}円`;
-            document.getElementById('totalAmount').textContent = formatted;
-            document.getElementById('totalAmount2').textContent = formatted;
-        }
-
-        function exportToCSV() {
-            const today = new Date();
-            const invoiceDate = `${today.getFullYear()}/${String(today.getMonth() + 1).padStart(2, '0')}/${String(today.getDate()).padStart(2, '0')}`;
-
-            const characters = parseInt(document.getElementById('billableChars').textContent.replace(/,/g, '')) || 0;
-            const sampleChargeChecked = document.getElementById('sampleCharge').checked;
-
-            let items = Array(20).fill().map(() => ({name: '', quantity: '', unit: '', price: '', taxRate: '', taxExempt: '1'}));
-            let idx = 0;
-
-            if (sampleChargeChecked) {
-                items[idx++] = {
-                    name: '正式依頼前のサンプル料金（200文字限定）',
-                    quantity: 1,
-                    unit: '式',
-                    price: 500
                 };
-            } else {
-                const baseRate = parseFloat(document.getElementById('baseRate').value) || 1.5;
-                const commercialType = document.getElementById('commercialType').value || 'none';
-                const specialOption = document.getElementById('specialVoiceOption').value || 'none';
-                const binauralValue = document.getElementById('binauralRate').value;
-                const noiseCut = document.getElementById('noiseCut').value;
-                const extraCharacters = parseInt(document.getElementById('extraCharacters').value) || 0;
-
-                const adlibMinutes = parseFloat(document.getElementById('adlibMinutes').value) || 0;
-                const freeTalkMinutes = parseInt(document.getElementById('freeTalkMinutes').value) || 0;
-                const fileCuts = parseInt(document.getElementById('fileCuts').value) || 0;
-                const videoSync = document.getElementById('videoSync').checked;
-                const burpFartCount = parseInt(document.getElementById('burpFartCount').value) || 0;
-                const recordingDays = parseInt(document.getElementById('recordingDays').value) || 0;
-                const hitsujiStudio = document.getElementById('hitsujiStudio').checked;
-                const seInsertionEdit = document.getElementById('seInsertionEdit').checked;
-                const soundMaterialRec = document.getElementById('soundMaterialRec').checked;
-
-                if (characters > 0) {
-                    const isIikoe = [1.5, 2.5].includes(baseRate);
-                    items[idx++] = {
-                        name: isIikoe ? '音声収録料(iikoe仲介経由)' : '音声収録料(HP経由)',
-                        quantity: characters,
-                        unit: '文字',
-                        price: baseRate
-                    };
-                }
-
-                if (commercialType !== 'none' && characters > 0) {
-                    let name = '';
-                    let rate = 0;
-                    if (commercialType === 'adfree_credit') { name = '広告収入なし動画投稿・クレジット表記あり加算'; rate = 0.3; }
-                    else if (commercialType === 'adfree_nocredit') { name = '広告収入なし動画投稿・クレジット表記なし加算'; rate = 0.5; }
-                    else if (commercialType === 'commercial_credit') { name = '商用利用クレジット表記あり加算'; rate = 0.5; }
-                    else if (commercialType === 'commercial_nocredit') { name = '商用利用クレジット表記なし加算'; rate = 1; }
-
-                    items[idx++] = {
-                        name: name,
-                        quantity: characters,
-                        unit: '文字',
-                        price: rate
-                    };
-                }
-
-                if (specialOption === 'apply' && characters > 0) {
-                    const baseChars = Math.min(characters, 4999);
-                    if (baseChars > 0) {
-                        items[idx++] = {
-                            name: '割増料金（絶叫等・5000文字未満部分）',
-                            quantity: baseChars,
-                            unit: '文字',
-                            price: 0.5
-                        };
-                    }
-                    const extraChars = Math.max(0, characters - 4999);
-                    if (extraChars > 0) {
-                        items[idx++] = {
-                            name: '割増料金（絶叫等・5000文字超過部分）',
-                            quantity: extraChars,
-                            unit: '文字',
-                            price: 1.5
-                        };
-                    }
-                }
-
-                let longAddon = 0;
-                if (characters >= 5000) {
-                    const blocks = Math.floor(characters / 5000);
-                    for (let i = 1; i <= blocks; i++) {
-                        if (i <= 2) {
-                            longAddon += 1000;
-                        } else {
-                            longAddon += 500;
-                        }
-                    }
-                    if (longAddon > 0) {
-                        items[idx++] = {
-                            name: '長編追加料金（5000文字ブロックごと）',
-                            quantity: 1,
-                            unit: '式',
-                            price: longAddon
-                        };
-                    }
-                }
-
-                if (binauralValue === '500_all') {
-                    items[idx++] = {
-                        name: 'バイノーラル (全年齢/R15)',
-                        quantity: 1,
-                        unit: '式',
-                        price: 500
-                    };
-                } else if (binauralValue === '0.5_r18' && characters > 0) {
-                    items[idx++] = {
-                        name: 'バイノーラル (R18)',
-                        quantity: characters,
-                        unit: '文字',
-                        price: 0.5
-                    };
-                } else if (binauralValue === '0.5_mimikaki' && characters > 0) {
-                    items[idx++] = {
-                        name: 'バイノーラル (全年齢耳かき付き/R15耳かき付き/R18耳かき付き)',
-                        quantity: characters,
-                        unit: '文字',
-                        price: 0.5
-                    };
-                }
-
-                if (extraCharacters > 0) {
-                    const isAllAge = [1, 1.5].includes(baseRate);
-                    const baseExtraRate = isAllAge ? 1000 : 2000;
-                    const ageLabel = isAllAge ? ' (全年齢)' : ' (R15またはR18)';
-
-                    items[idx++] = {
-                        name: '一人多役加算' + ageLabel,
-                        quantity: extraCharacters,
-                        unit: '役',
-                        price: baseExtraRate
-                    };
-
-                    if (binauralValue !== '0') {
-                        items[idx++] = {
-                            name: '一人多役バイノーラル加算',
-                            quantity: extraCharacters,
-                            unit: '役',
-                            price: RATES.BINAURAL_EXTRA_PER_ROLE
-                        };
-                    }
-                }
-
-                if (noiseCut === 'white') {
-                    items[idx++] = {
-                        name: 'ホワイトノイズ除去',
-                        quantity: 1,
-                        unit: '式',
-                        price: 500
-                    };
-                } else if (noiseCut === 'izotope') {
-                    const scriptAmount = characters * baseRate;
-                    const amount = Math.round(scriptAmount * (RATES.IZOTOPE_PERCENT / 100));
-                    items[idx++] = {
-                        name: 'iZotope使用ノイズ除去',
-                        quantity: 1,
-                        unit: '式',
-                        price: amount
-                    };
-                }
-
-                let billedMinutes = 0;
-                if (adlibMinutes > 2) {
-                    const excess = adlibMinutes - 2;
-                    billedMinutes = Math.ceil(excess);
-                }
-                if (billedMinutes > 0) {
-                    items[idx++] = {
-                        name: 'アドリブ（台本外喘ぎ・リップ音 超過分）',
-                        quantity: billedMinutes,
-                        unit: '分',
-                        price: 500
-                    };
-                }
-
-                if (burpFartCount > 0) {
-                    items[idx++] = {
-                        name: 'ゲップとおならの音 (5回まで)',
-                        quantity: 1,
-                        unit: '式',
-                        price: 600
-                    };
-                    if (burpFartCount > 5) {
-                        const extraCount = burpFartCount - 5;
-                        items[idx++] = {
-                            name: 'ゲップとおならの音 (超過分)',
-                            quantity: extraCount,
-                            unit: '回',
-                            price: 200
-                        };
-                    }
-                }
-
-                const freeTalkUnits = Math.floor(freeTalkMinutes / 5);
-                if (freeTalkUnits > 0) {
-                    items[idx++] = {
-                        name: 'フリートーク',
-                        quantity: freeTalkUnits,
-                        unit: '式',
-                        price: 1000
-                    };
-                }
-
-                if (fileCuts > 0) {
-                    items[idx++] = {name: 'ファイルカット', quantity: fileCuts, unit: 'カット', price: RATES.FILE_CUT};
-                }
-
-                if (videoSync) {
-                    const scriptAmount = characters * baseRate;
-                    const amount = Math.round(scriptAmount * (RATES.VIDEO_SYNC_PERCENT / 100));
-                    items[idx++] = {name: '動画合わせ(アテレコ)', quantity: 1, unit: '式', price: amount};
-                }
-
-                if (recordingDays > 0) {
-                    items[idx++] = {
-                        name: 'スタジオ収録交通費',
-                        quantity: recordingDays,
-                        unit: '日',
-                        price: 12000
-                    };
-                    if (hitsujiStudio) {
-                        items[idx++] = {
-                            name: 'ひつじのスタジオ利用割引',
-                            quantity: 1,
-                            unit: '式',
-                            price: -3000
-                        };
-                    }
-                }
-
-                if (seInsertionEdit) {
-                    const baseAmount = characters * baseRate;
-                    const amount25 = Math.round(baseAmount * 0.25);
-                    items[idx++] = {
-                        name: 'SE挿入・指示出し編集',
-                        quantity: 1,
-                        unit: '式',
-                        price: amount25
-                    };
-                    if (soundMaterialRec) {
-                        const amount15 = Math.round(baseAmount * 0.15);
-                        items[idx++] = {
-                            name: '音素材収録（ローション・ジェルボール等）',
-                            quantity: 1,
-                            unit: '式',
-                            price: amount15
-                        };
-                    }
-                }
             }
 
-            let csv = '"請求日","請求番号","件名","取引先管理コード","消費税設定","お支払い期限"';
-            for (let i = 1; i <= 20; i++) {
-                csv += `,"品目${i}","数量${i}","単位${i}","単価${i}","消費税率${i}","非課税フラグ${i}"`;
+            row.appendChild(cell);
+            if ((i + 1) % 7 === 0) {
+                calendarBody.appendChild(row);
+                row = document.createElement('tr');
             }
-            csv += ',"請求先名称","敬称","担当者","送付先郵便番号","送付先住所1","送付先住所2","送付先名前1","送付先名前2","送付先名前3","送付先名前4","送付先敬称"\n';
-
-            let row = `"${invoiceDate}","","声優依頼に関する報酬のご請求につきまして","","EXEMPT",""`;
-            for (const item of items) {
-                row += `,"${item.name || ''}","${item.quantity || ''}","${item.unit || ''}","${item.price || ''}","${item.taxRate || ''}","${item.taxExempt}"`;
-            }
-            row += ',"依頼者名","様","","","","","","","","",""';
-
-            const csvContent = csv + row;
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `見積もり_${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}.csv`;
-            a.click();
-            URL.revokeObjectURL(url);
         }
+    }
 
-        window.onload = function() {
-            countCharacters();
-            calculate();
-        };
-    </script>
+    document.getElementById('prev-month').onclick = () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        renderCalendar();
+    };
+
+    document.getElementById('next-month').onclick = () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        renderCalendar();
+    };
+
+    renderCalendar();
+</script>
 </body>
 </html>
