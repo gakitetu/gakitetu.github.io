@@ -103,7 +103,34 @@
         th:nth-child(7), td:nth-child(7) { color: #e63946; }
         th:nth-child(6), td:nth-child(6) { color: #4361ee; }
 
-        /* スマホ対応（iPhone 16を含む幅の狭い画面で横スクロールなしに全体が収まるように調整） */
+        /* 凡例スタイル */
+        #legend {
+            margin-top: 40px;
+            text-align: center;
+        }
+        #legend h3 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px #ffb6c1;
+        }
+        .legend-items {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+        .legend-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .legend-mark {
+            font-size: 3em;
+            margin-bottom: 8px;
+            text-shadow: 2px 2px 4px #ffb6c1;
+        }
+
+        /* スマホ対応 */
         @media (max-width: 768px) {
             body { padding: 15px 8px; }
             .container { padding: 18px; border-radius: 30px; }
@@ -123,19 +150,22 @@
                 height: 60px; 
                 font-size: 2em; 
             }
-            /* テーブルを画面幅100%に強制フィット（横スクロール不要） */
             table {
                 min-width: 0;
-                table-layout: fixed; /* 列を均等幅に */
+                table-layout: fixed;
             }
             th { padding: 10px; font-size: 1.1em; }
-            td { height: 78px; } /* 高さを抑えて縦に収まりやすく */
+            td { height: 78px; }
             .day-number { font-size: 1.3em; padding: 6px; }
             .mark { 
                 font-size: 2.3em; 
                 bottom: 6px; 
                 right: 8px; 
             }
+            #legend { margin-top: 30px; }
+            #legend h3 { font-size: 1.6em; }
+            .legend-items { gap: 20px; }
+            .legend-mark { font-size: 2.5em; }
         }
 
         @media (max-width: 480px) {
@@ -146,6 +176,8 @@
             td { height: 70px; }
             .day-number { font-size: 1.2em; padding: 5px; }
             .mark { font-size: 2.1em; bottom: 5px; right: 6px; }
+            .legend-items { gap: 15px; }
+            .legend-mark { font-size: 2.2em; }
         }
     </style>
 </head>
@@ -172,11 +204,34 @@
                 <tbody></tbody>
             </table>
         </div>
+
+        <!-- マークの説明（新規追加） -->
+        <div id="legend">
+            <h3>マークの説明</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-mark">◎</div>
+                    <p>予約受付中</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-mark">〇</div>
+                    <p>5000字まで可能</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-mark">△</div>
+                    <p>2000字まで可能</p>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-mark">×</div>
+                    <p>予約不可</p>
+                </div>
+            </div>
+        </div>
     </div>
 
 <script>
     // ★★★ あなたのfirebaseConfigをここに貼ってね ★★★
-   const firebaseConfig = {
+    const firebaseConfig = {
   apiKey: "AIzaSyA3CTwSfNS4MeyzTGCtkUA91hQWxlXilxU",
   authDomain: "gakitetucalendar.firebaseapp.com",
   databaseURL: "https://gakitetucalendar-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -252,6 +307,9 @@
 
         currentMonthSpan.textContent = `${currentYear}年 ${months[currentMonth]}`;
 
+        // マークの順番（クリックでこの順に循環）
+        const markOptions = ['◎', '〇', '△', '×', '']; // 最後の''は「マークなし」
+
         let row = document.createElement('tr');
         for (let i = 0; i < 42; i++) {
             const date = new Date(startDate);
@@ -267,22 +325,40 @@
             dayDiv.textContent = date.getDate();
             cell.appendChild(dayDiv);
 
-            // マーク表示（予定ありの日） ※ 元コードでは空文字でしたが、表示されないので一般的な♥に変更（必要に応じて変更してください）
+            // マーク表示（過去の♥→trueデータは◎として扱う）
+            let currentMark = '';
             if (events[dateStr]) {
+                if (typeof events[dateStr] === 'boolean' && events[dateStr]) {
+                    currentMark = '◎';
+                } else if (typeof events[dateStr] === 'string') {
+                    currentMark = events[dateStr];
+                }
+            }
+            if (currentMark && currentMark !== '') {
                 const mark = document.createElement('div');
                 mark.className = 'mark';
-                mark.textContent = '♥';
+                mark.textContent = currentMark;
                 cell.appendChild(mark);
             }
 
-            // ログイン時のみクリックでトグル
+            // ログイン時のみクリックでマークを循環
             if (currentUser) {
                 cell.style.cursor = 'pointer';
                 cell.onclick = () => {
-                    if (events[dateStr]) {
+                    let current = events[dateStr] || '';
+                    if (typeof current === 'boolean' && current) {
+                        current = '◎';
+                    }
+
+                    let index = markOptions.indexOf(current);
+                    if (index === -1) index = -1; // 不正な値の場合は次から開始
+                    index = (index + 1) % markOptions.length;
+                    const nextMark = markOptions[index];
+
+                    if (nextMark === '') {
                         eventsRef.child(dateStr).remove();
                     } else {
-                        eventsRef.child(dateStr).set(true);
+                        eventsRef.child(dateStr).set(nextMark);
                     }
                 };
             }
@@ -311,5 +387,3 @@
 </script>
 </body>
 </html>
-
-
