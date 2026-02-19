@@ -247,7 +247,6 @@
     </style>
 </head>
 <body>
-    <!-- 以下、元のHTML内容は一切変更していません -->
     <div class="container">
         <h1>ガキ鉄料金計算表</h1>
 
@@ -511,6 +510,13 @@
                     </div>
                 </div>
 
+                <!-- 新規追加：クーポン割引（追加オプションの最下層に配置） -->
+                <div class="input-group">
+                    <label for="couponDiscount">クーポン割引:</label>
+                    <input type="number" id="couponDiscount" value="0" min="0" step="1" oninput="calculate()">
+                    <span style="font-size:0.9em;">円（入力した金額分、合計から割引されます）</span>
+                </div>
+
                 <h3 style="margin-top: 30px; border-bottom: 2px solid #ff69b4; padding-bottom: 5px; font-size: 1.1em;">要メールの追加オプション</h3>
                 <div class="input-group" style="margin-bottom: 12px; font-size: 0.9em;">
                     <span>◯歌は5500円です。（ピッチ補正mix不可）(自身が知らない曲の場合は1万1500円頂きます)</span><br>
@@ -538,7 +544,6 @@
             </div>
         </details>
 
-        <!-- 新規追加ボタン：文字カウント仕様の下に配置 -->
         <div class="total" id="totalAmount2">
             台本: 0円 + オプション: 0円 = 合計: 0円
         </div>
@@ -566,7 +571,7 @@
         </div>
     
     <script>
-        /* 以下、JavaScript部分は一切変更していません（元のコードをそのまま使用） */
+        /* 以下、JavaScript部分は既存のコードを一切変更せず、クーポン割引の処理のみ追加しています */
         const RATES = {
             FREE_TALK: 1000,
             FILE_CUT: 100,
@@ -805,7 +810,12 @@
                 }
             }
 
-            const total = scriptTotal + optionTotal;
+            // 新規追加：クーポン割引をオプション合計から減算（負になっても表示上はそのまま、合計は0以下にならないようにする）
+            const couponDiscount = parseInt(document.getElementById('couponDiscount').value) || 0;
+            optionTotal -= couponDiscount;
+
+            let total = scriptTotal + optionTotal;
+            if (total < 0) total = 0; // 合計がマイナスにならないように補正
 
             const formatted = `台本: ${Math.round(scriptTotal).toLocaleString()}円 + オプション: ${Math.round(optionTotal).toLocaleString()}円 = 合計: ${Math.round(total).toLocaleString()}円`;
             document.getElementById('totalAmount').textContent = formatted;
@@ -818,6 +828,7 @@
 
             const characters = parseInt(document.getElementById('billableChars').textContent.replace(/,/g, '')) || 0;
             const sampleChargeChecked = document.getElementById('sampleCharge').checked;
+            const couponDiscount = parseInt(document.getElementById('couponDiscount').value) || 0;
 
             let items = Array(20).fill().map(() => ({name: '', quantity: '', unit: '', price: '', taxRate: '', taxExempt: '1'}));
             let idx = 0;
@@ -1065,6 +1076,16 @@
                         };
                     }
                 }
+
+                // 新規追加：クーポン割引をCSVにも負の金額で出力（サンプル料金時は出力しない）
+                if (couponDiscount > 0) {
+                    items[idx++] = {
+                        name: 'クーポン割引',
+                        quantity: 1,
+                        unit: '式',
+                        price: -couponDiscount
+                    };
+                }
             }
 
             let csv = '"請求日","請求番号","件名","取引先管理コード","消費税設定","お支払い期限"';
@@ -1096,7 +1117,3 @@
     </script>
 </body>
 </html>
-
-
-
-
